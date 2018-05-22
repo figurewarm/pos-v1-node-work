@@ -1,53 +1,13 @@
 module.exports = function main(shoppingList) {
     const datbase = require('../main/datbase')
     var finalBill = '';
-    var formatList = [];
+    var formatList = formatShoppingList(shoppingList);
     var allPromotions = datbase.loadPromotions();
-    var allItems = datbase.loadAllItems();
-    for (let i = 0; i < shoppingList.length; i++) {
-        for (let j = 0; j < allItems.length; j++) {
-            if (shoppingList[i].length == 10) {
-                if (shoppingList[i] == allItems[j].barcode)
-                    formatList.push({
-                        barcode: allItems[j].barcode,
-                        name: allItems[j].name,
-                        unit: allItems[j].unit,
-                        price: allItems[j].price
-                    })
-            } else {
-                if (shoppingList[i].slice(0, 10) == allItems[j].barcode)
-                    for (let k = 0; k < shoppingList[i].slice(11); k++)
-                        formatList.push({
-                            barcode: allItems[j].barcode,
-                            name: allItems[j].name,
-                            unit: allItems[j].unit,
-                            price: allItems[j].price
-                        });
-            }
-        }
-    }
-    var listWithoutRepeat = [];
-    for (let i = 0; i < formatList.length; i++)
-        listWithoutRepeat[i] = formatList[i];
-    for (let i = 0; i < listWithoutRepeat.length; i++) {
-        for (let j = i + 1; j < listWithoutRepeat.length; j++) {
-            if (listWithoutRepeat[i].barcode == listWithoutRepeat[j].barcode) {
-                listWithoutRepeat.splice(j, 1);
-                j--;
-            }
-        }
-    }
-    var countArray = [];
+    var listWithoutRepeat = shoppingKinds(formatList);
+    var countArray = countShoppingNumber(listWithoutRepeat, formatList);
     var discountPrice = [];
     var totalPrice = 0;
     var saveMoney = 0;
-    for (let i = 0; i < listWithoutRepeat.length; i++)
-        countArray[i] = 0;
-    for (let i = 0; i < listWithoutRepeat.length; i++) {
-        for (let j = 0; j < formatList.length; j++)
-            if (listWithoutRepeat[i].barcode == formatList[j].barcode)
-                countArray[i]++;
-    }
     for (let i = 0; i < listWithoutRepeat.length; i++) {
         discountPrice[i] = 0;
         if (listWithoutRepeat[i].barcode == allPromotions[0].barcodes[0] ||
@@ -79,4 +39,60 @@ module.exports = function main(shoppingList) {
     finalBill += '----------------------\n总计：' + totalPrice.toFixed(2) + '(元)\n节省：' + saveMoney.toFixed(2) + '(元)\n**********************'
     console.log(finalBill);
     return finalBill;
+}
+
+function formatShoppingList(shoppingList) {
+    var formatList = [];
+    const datbase = require('../main/datbase')
+    var allItems = datbase.loadAllItems();
+    for (let i = 0; i < shoppingList.length; i++) {
+        for (let j = 0; j < allItems.length; j++) {
+            if (shoppingList[i].length == 10) {
+                if (shoppingList[i] == allItems[j].barcode)
+                    formatList.push({
+                        barcode: allItems[j].barcode,
+                        name: allItems[j].name,
+                        unit: allItems[j].unit,
+                        price: allItems[j].price
+                    })
+            } else {
+                if (shoppingList[i].slice(0, 10) == allItems[j].barcode)
+                    for (let k = 0; k < shoppingList[i].slice(11); k++)
+                        formatList.push({
+                            barcode: allItems[j].barcode,
+                            name: allItems[j].name,
+                            unit: allItems[j].unit,
+                            price: allItems[j].price
+                        });
+            }
+        }
+    }
+    return formatList;
+}
+
+function shoppingKinds(formatList) {
+    var listWithoutRepeat = []
+    for (let i = 0; i < formatList.length; i++)
+        listWithoutRepeat[i] = formatList[i];
+    for (let i = 0; i < listWithoutRepeat.length; i++) {
+        for (let j = i + 1; j < listWithoutRepeat.length; j++) {
+            if (listWithoutRepeat[i].barcode == listWithoutRepeat[j].barcode) {
+                listWithoutRepeat.splice(j, 1);
+                j--;
+            }
+        }
+    }
+    return listWithoutRepeat;
+}
+
+function countShoppingNumber(listWithoutRepeat, formatList) {
+    var countArray = [];
+    for (let i = 0; i < listWithoutRepeat.length; i++)
+        countArray[i] = 0;
+    for (let i = 0; i < listWithoutRepeat.length; i++) {
+        for (let j = 0; j < formatList.length; j++)
+            if (listWithoutRepeat[i].barcode == formatList[j].barcode)
+                countArray[i]++;
+    }
+    return countArray
 }
